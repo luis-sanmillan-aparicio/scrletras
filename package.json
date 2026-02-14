@@ -12,7 +12,7 @@
     "react-dom": "^18.2.0",
     "cheerio": "^1.0.0-rc.12",
     "axios": "^1.6.0",
-    "puppeteer-core": "^21.6.0",
-    "@sparticuz/chromium": "^119.0.0"
+    "puppeteer-core": "^21.11.0",
+    "@sparticuz/chromium": "^121.0.0"
   }
 }
