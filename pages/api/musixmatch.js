@@ -70,6 +70,7 @@ export async function searchMusixmatch(artist, song) {
     
     if (nextDataScript.length === 0) {
       console.log('[DEBUG] No se encontró el script __NEXT_DATA__');
+      console.log('[DEBUG] HTML recibido (primeros 1000 chars):', response.data.substring(0, 1000));
       return {
         title: song,
         artist: artist,
