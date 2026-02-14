@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 
 export async function searchMusixmatch(artist, song) {
   try {
-    // Formatear URL (igual que en tu Python)
+    // Formatear URL
     const artistFormatted = artist
       .toLowerCase()
       .replace(/\s+/g, '-')
@@ -18,16 +18,27 @@ export async function searchMusixmatch(artist, song) {
     
     console.log('[DEBUG] URL Musixmatch:', url);
     
+    // HEADERS MEJORADOS para simular navegador real
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
       'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-      'Referer': 'https://www.musixmatch.com/'
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none',
+      'Sec-Fetch-User': '?1',
+      'Cache-Control': 'max-age=0',
+      'Referer': 'https://www.google.com/',
+      'DNT': '1'
     };
     
     const response = await axios.get(url, {
       headers: headers,
-      timeout: 15000
+      timeout: 15000,
+      maxRedirects: 5
     });
     
     console.log('[DEBUG] Status code:', response.status);
@@ -37,19 +48,20 @@ export async function searchMusixmatch(artist, song) {
       return null;
     }
     
-    // Extraer el JSON embebido de __NEXT_DATA__ (igual que tu Python)
+    // Extraer el JSON embebido de __NEXT_DATA__
     const $ = cheerio.load(response.data);
     const nextDataScript = $('#__NEXT_DATA__');
     
     if (nextDataScript.length === 0) {
       console.log('[DEBUG] No se encontró el script __NEXT_DATA__');
+      console.log('[DEBUG] HTML recibido (primeros 500 chars):', response.data.substring(0, 500));
       return null;
     }
     
     const jsonData = JSON.parse(nextDataScript.html());
     console.log('[DEBUG] JSON parseado correctamente');
     
-    // Navegar por el JSON (igual que tu Python)
+    // Navegar por el JSON
     const lyricsBody = jsonData
       ?.props
       ?.pageProps
@@ -80,7 +92,7 @@ export async function searchMusixmatch(artist, song) {
     
     console.log('[DEBUG] Título:', title, 'Artista:', artistName);
     
-    // Limpiar las letras (igual que tu Python)
+    // Limpiar las letras
     const lyrics = lyricsBody.replace(/\n{3,}/g, '\n\n').trim();
     
     return {
@@ -93,6 +105,9 @@ export async function searchMusixmatch(artist, song) {
     
   } catch (error) {
     console.error('[ERROR] Musixmatch:', error.message);
+    if (error.response) {
+      console.error('[ERROR] Status code:', error.response.status);
+    }
     return null;
   }
 }
