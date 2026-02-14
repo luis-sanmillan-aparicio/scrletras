@@ -3,6 +3,10 @@ import * as cheerio from 'cheerio';
 
 export async function searchMusixmatch(artist, song) {
   try {
+    // TRIM para eliminar espacios al inicio y final
+    artist = artist.trim();
+    song = song.trim();
+    
     // Formatear URL
     const artistFormatted = artist
       .toLowerCase()
@@ -16,9 +20,11 @@ export async function searchMusixmatch(artist, song) {
     
     const url = `https://www.musixmatch.com/lyrics/${artistFormatted}/${songFormatted}`;
     
+    console.log('[DEBUG] Artist:', artist);
+    console.log('[DEBUG] Song:', song);
     console.log('[DEBUG] URL Musixmatch:', url);
     
-    // HEADERS MEJORADOS para simular navegador real
+    // HEADERS MEJORADOS
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -38,14 +44,24 @@ export async function searchMusixmatch(artist, song) {
     const response = await axios.get(url, {
       headers: headers,
       timeout: 15000,
-      maxRedirects: 5
+      maxRedirects: 5,
+      validateStatus: function (status) {
+        return status < 500; // Aceptar redirects
+      }
     });
     
     console.log('[DEBUG] Status code:', response.status);
     
     if (response.status === 404) {
-      console.log('[DEBUG] Página no encontrada (404)');
-      return null;
+      console.log('[DEBUG] Página no encontrada (404) - Puede que el formato de URL no sea exacto');
+      return {
+        title: song,
+        artist: artist,
+        lyrics: null,
+        url: url,
+        found: false,
+        error: 'No encontrado - verifica la ortografía o busca manualmente'
+      };
     }
     
     // Extraer el JSON embebido de __NEXT_DATA__
@@ -54,8 +70,14 @@ export async function searchMusixmatch(artist, song) {
     
     if (nextDataScript.length === 0) {
       console.log('[DEBUG] No se encontró el script __NEXT_DATA__');
-      console.log('[DEBUG] HTML recibido (primeros 500 chars):', response.data.substring(0, 500));
-      return null;
+      return {
+        title: song,
+        artist: artist,
+        lyrics: null,
+        url: url,
+        found: false,
+        error: 'No se pudo extraer la información'
+      };
     }
     
     const jsonData = JSON.parse(nextDataScript.html());
@@ -73,7 +95,24 @@ export async function searchMusixmatch(artist, song) {
     
     if (!lyricsBody) {
       console.log('[DEBUG] No se encontró lyrics.body en el JSON');
-      return null;
+      
+      // Intentar obtener al menos el título real de la canción si existe
+      const trackData = jsonData
+        ?.props
+        ?.pageProps
+        ?.data
+        ?.trackInfo
+        ?.data
+        ?.track || {};
+      
+      return {
+        title: trackData.name || song,
+        artist: trackData.artistName || artist,
+        lyrics: null,
+        url: url,
+        found: false,
+        error: 'Canción encontrada pero sin letras disponibles'
+      };
     }
     
     console.log('[DEBUG] Letras extraídas:', lyricsBody.length, 'caracteres');
@@ -108,6 +147,13 @@ export async function searchMusixmatch(artist, song) {
     if (error.response) {
       console.error('[ERROR] Status code:', error.response.status);
     }
-    return null;
+    return {
+      title: song,
+      artist: artist,
+      lyrics: null,
+      url: `https://www.musixmatch.com/search/${encodeURIComponent(song + ' ' + artist)}`,
+      found: false,
+      error: 'Error en la búsqueda'
+    };
   }
 }
