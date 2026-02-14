@@ -2,11 +2,29 @@ import { searchGenius } from './genius';
 import { searchMusixmatch } from './musixmatch';
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+  // ===== CONFIGURAR CORS =====
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Permitir desde cualquier origen
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Manejar petición OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
 
-  const { artist, song, source = 'ambas' } = req.body;
+  // Obtener parámetros (POST o GET)
+  let artist, song, source;
+  if (req.method === 'POST') {
+    ({ artist, song, source = 'ambas' } = req.body);
+  } else {
+    artist = req.query.artist;
+    song = req.query.song;
+    source = req.query.source || 'ambas';
+  }
 
   if (!artist || !song) {
     return res.status(400).json({ 
