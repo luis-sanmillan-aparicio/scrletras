@@ -50,3 +50,51 @@ export default async function handler(req, res) {
           results.genius = geniusData;
           results.success = true;
         }
+      } catch (error) {
+        console.error('Error Genius:', error.message);
+      }
+    }
+
+    // Buscar en Google
+    if (source === 'google' || source === 'ambas') {
+      try {
+        const googleData = await searchGoogle(artist, song);
+        if (googleData) {
+          results.google = googleData;
+          results.success = true;
+        }
+      } catch (error) {
+        console.error('Error Google:', error.message);
+      }
+    }
+    
+    // Buscar en Musixmatch
+    if (source === 'musixmatch' || source === 'ambas') {
+      try {
+        const musixData = await searchMusixmatch(artist, song);
+        if (musixData) {
+          results.musixmatch = musixData;
+          results.success = true;
+        }
+      } catch (error) {
+        console.error('Error Musixmatch:', error.message);
+      }
+    }
+
+    if (!results.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'No se encontraron resultados en ninguna fuente'
+      });
+    }
+
+    return res.status(200).json(results);
+
+  } catch (error) {
+    console.error('Error general:', error);
+    return res.status(500).json({ 
+      success: false,
+      error: 'Error al procesar la búsqueda' 
+    });
+  }
+}
