@@ -39,6 +39,7 @@ export async function searchGoogle(artist, song) {
     
     if (lyricsContainer.length === 0) {
       console.log('[DEBUG] No se encontró el panel de letras de Google');
+      console.log('[DEBUG] HTML recibido (primeros 2000 chars):', response.data.substring(0, 2000));
       return null;
     }
     
