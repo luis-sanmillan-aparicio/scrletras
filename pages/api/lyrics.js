@@ -1,5 +1,6 @@
 import { searchGenius } from './genius';
 import { searchMusixmatch } from './musixmatch';
+import { searchGoogle } from './google';
 
 export default async function handler(req, res) {
   // ===== CONFIGURAR CORS =====
@@ -53,6 +54,26 @@ export default async function handler(req, res) {
       }
     }
 
+
+
+
+    // Buscar en Google
+    if (source === 'google' || source === 'ambas') {
+      try {
+        const googleData = await searchGoogle(artist, song);
+        if (googleData) {
+          results.google = googleData;
+          results.success = true;
+        }
+      } catch (error) {
+        console.error('Error Google:', error.message);
+      }
+    }
+
+
+
+
+    
     // Buscar en Musixmatch
     if (source === 'musixmatch' || source === 'ambas') {
       try {
