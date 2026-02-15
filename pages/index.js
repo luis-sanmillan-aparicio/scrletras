@@ -42,7 +42,7 @@ export default function Home() {
   return (
     <div style={{ maxWidth: '900px', margin: '30px auto', padding: '20px', fontFamily: 'Arial' }}>
       <h1 style={{ textAlign: 'center', color: '#333' }}>🎵 Buscador de Letras</h1>
-      <p style={{ textAlign: 'center', color: '#666' }}>Genius & Musixmatch</p>
+      <p style={{ textAlign: 'center', color: '#666' }}>Genius, Musixmatch & Google</p>
       
       {/* Campos de entrada */}
       <div style={{ marginBottom: '20px', marginTop: '30px' }}>
@@ -93,13 +93,21 @@ export default function Home() {
               onChange={(e) => setSource(e.target.value)}
             /> Musixmatch
           </label>
+          <label style={{ marginRight: '20px' }}>
+            <input
+              type="radio"
+              value="google"
+              checked={source === 'google'}
+              onChange={(e) => setSource(e.target.value)}
+            /> Google
+          </label>
           <label>
             <input
               type="radio"
               value="ambas"
               checked={source === 'ambas'}
               onChange={(e) => setSource(e.target.value)}
-            /> Ambas
+            /> Todas
           </label>
         </div>
       </div>
@@ -133,6 +141,7 @@ export default function Home() {
       {/* Resultados */}
       {results && (
         <div style={{ marginTop: '30px' }}>
+          
           {/* Genius */}
           {results.genius && (
             <div style={{ marginBottom: '30px' }}>
@@ -153,6 +162,33 @@ export default function Home() {
                   lineHeight: '1.6'
                 }}>
                   {results.genius.lyrics}
+                </pre>
+              ) : (
+                <p style={{ color: '#666', fontStyle: 'italic' }}>Letras no disponibles</p>
+              )}
+            </div>
+          )}
+
+          {/* Google */}
+          {results.google && (
+            <div style={{ marginBottom: '30px' }}>
+              <div style={{ borderBottom: '3px solid #333', paddingBottom: '10px', marginBottom: '15px' }}>
+                <h2 style={{ margin: 0 }}>GOOGLE</h2>
+              </div>
+              <p><strong>Título:</strong> {results.google.title}</p>
+              <p><strong>Artista:</strong> {results.google.artist}</p>
+              <p><strong>Fuente:</strong> {results.google.source}</p>
+              
+              {results.google.found ? (
+                <pre style={{ 
+                  whiteSpace: 'pre-wrap', 
+                  backgroundColor: '#f5f5f5', 
+                  padding: '20px', 
+                  borderRadius: '4px',
+                  fontFamily: 'Arial',
+                  lineHeight: '1.6'
+                }}>
+                  {results.google.lyrics}
                 </pre>
               ) : (
                 <p style={{ color: '#666', fontStyle: 'italic' }}>Letras no disponibles</p>
